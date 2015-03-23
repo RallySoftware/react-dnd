@@ -1,5 +1,5 @@
 {
-  "name": "react-dnd",
+  "name": "rally-react-dnd",
   "version": "0.9.6",
   "description": "Drag and drop for React with full DOM control",
   "main": "dist-modules/index.js",
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/gaearon/react-dnd.git"
+    "url": "https://github.com/RallySoftware/react-dnd.git"
   },
   "keywords": [
     "react",
@@ -29,6 +29,11 @@
   "bugs": {
     "url": "https://github.com/gaearon/react-dnd/issues"
   },
+  "contributors": [
+    {
+      "name": "Rally Software"
+    }
+  ]
   "homepage": "https://github.com/gaearon/react-dnd",
   "dependencies": {
     "flux": "^2.0.1",

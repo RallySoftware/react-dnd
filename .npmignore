@@ -1,0 +1,8 @@
+node_modules
+examples
+docs
+
+# Mac files
+.DS_Store
+
+.rvmrc
