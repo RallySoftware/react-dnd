@@ -53,5 +53,8 @@
     "request": "2.46.0",
     "webpack": "1.5.3",
     "webpack-dev-server": "1.7.0"
+  },
+  "publishConfig": {
+    "registry": "http://npm-publish.f4tech.com"
   }
 }
