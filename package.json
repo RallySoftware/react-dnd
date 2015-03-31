@@ -1,6 +1,6 @@
 {
   "name": "react-dnd",
-  "version": "0.9.6-rally",
+  "version": "0.9.6-rally.1",
   "description": "Drag and drop for React with full DOM control",
   "main": "dist-modules/index.js",
   "scripts": {
@@ -37,7 +37,7 @@
   "homepage": "https://github.com/gaearon/react-dnd",
   "dependencies": {
     "flux": "^2.0.1",
-    "lodash": "3.5.0"
+    "lodash": "^3.1.0"
   },
   "peerDependencies": {
     "react": ">=0.12.0 <0.14.0"
