@@ -1,18 +1,64 @@
 'use strict';
 
 var DragDropActionCreators = require('../actions/DragDropActionCreators'),
-DragDropStore = require('../stores/DragDropStore'),
-getMouseCoordinates = require('../utils/getMouseCoordinates');
+    DragOperationStore = require('../stores/DragOperationStore'),
+    find = require('lodash/collection/find'),
+    includes = require('lodash/collection/includes'),
+    getElementRect = require('../utils/getElementRect');
 
 var _currentComponent;
+var _dropTargets = [];
+var _currentDropTarget;
 
-function handleTopMouseMove(e) {
-  var coordinates = getMouseCoordinates(e);
-  DragDropActionCreators.drag(coordinates);
+function getDragItemTypes() {
+  return [DragOperationStore.getDraggedItemType()];
 }
 
-function handleTopMouseUp() {
-  var type = DragDropStore.getDraggedItemType();
+function findDropTarget(coordinates) {
+  return find(_dropTargets, (target) => {
+    var rect = getElementRect(target.getDOMNode());
+
+    if (!rect) {
+      return false;
+    }
+
+    return coordinates.x >= rect.left && coordinates.x <= rect.left + rect.width && coordinates.y >= rect.top && coordinates.y <= rect.top + rect.height;
+  });
+}
+
+function handleTopMouseMove(e) {
+  var coordinates = getClientOffset(e);
+  DragDropActionCreators.drag(coordinates);
+
+  var activeTarget = findDropTarget(coordinates);
+
+  if (!_currentDropTarget && !activeTarget) {
+    return;
+  }
+
+  var dragItemTypes = getDragItemTypes();
+  if (activeTarget === _currentDropTarget) {
+    _currentDropTarget.handleDragOver(dragItemTypes, e)
+    return;
+  }
+
+  if (_currentDropTarget) {
+    _currentDropTarget.handleDragLeave(dragItemTypes, e);
+  }
+
+  if (activeTarget) {
+    activeTarget.handleDragEnter(dragItemTypes, e);
+  }
+
+  _currentDropTarget = activeTarget;
+}
+
+function handleTopMouseUp(e) {
+  if (_currentDropTarget) {
+    _currentDropTarget.handleDrop(getDragItemTypes(), e);
+  }
+
+  var type = DragOperationStore.getDraggedItemType();
   _currentComponent.handleDragEnd(type, null);
 }
 
@@ -48,23 +94,17 @@ var Mouse = {
   },
 
   getDragSourceProps(component, type) {
-    // TODO: optimize bind when we figure this out
     return {
       onMouseDown: component.handleDragStart.bind(component, type)
     };
   },
 
   getDropTargetProps(component, types) {
-    return {
-      onMouseEnter: component.handleDragEnter.bind(component, types),
-      onMouseOver: component.handleDragOver.bind(component, types),
-      onMouseLeave: component.handleDragLeave.bind(component, types),
-      onMouseUp: component.handleDrop.bind(component, types)
-    };
-  },
+    if (!includes(_dropTargets, (target) => target._rootNodeID === component._rootNodeID)) {
+      _dropTargets.push(component);
+    }
 
-  getDragClientOffset(e) {
-    return getMouseCoordinates(e);
+    return {};
   },
 
   getOffsetFromClient(component, e) {
