@@ -2,4 +2,5 @@
 
 module.exports = {
   HTML5: require("./HTML5"),
-  Mouse: require("./Mouse") };
+  Mouse: require("./Mouse"),
+  Touch: require("./Touch") };

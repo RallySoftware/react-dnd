@@ -4,11 +4,13 @@ var _require = require("./backends");
 
 var HTML5 = _require.HTML5;
 var Mouse = _require.Mouse;
+var Touch = _require.Touch;
 var createDragDropMixin = require("./utils/createDragDropMixin");
 
 module.exports = {
   DragDropMixin: createDragDropMixin(HTML5),
   MouseDragDropMixin: createDragDropMixin(Mouse),
+  TouchDragDropMixin: createDragDropMixin(Touch),
   ImagePreloaderMixin: require("./mixins/ImagePreloaderMixin"),
   DragLayerMixin: require("./mixins/DragLayerMixin"),
   HorizontalDragAnchors: require("./constants/HorizontalDragAnchors"),
