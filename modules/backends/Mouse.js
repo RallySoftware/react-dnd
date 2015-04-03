@@ -3,6 +3,7 @@
 var DragDropActionCreators = require('../actions/DragDropActionCreators'),
     DragOperationStore = require('../stores/DragOperationStore'),
     find = require('lodash/collection/find'),
+    filter = require('lodash/collection/filter'),
     includes = require('lodash/collection/includes'),
     getElementRect = require('../utils/getElementRect');
 
@@ -10,12 +11,21 @@ var _currentComponent;
 var _dropTargets = [];
 var _currentDropTarget;
 
+function removeUnmountedDropTargets() {
+  _dropTargets = filter(_dropTargets, (target) => {
+    return target.isMounted();
+  });
+}
 function getDragItemTypes() {
   return [DragOperationStore.getDraggedItemType()];
 }
 
 function findDropTarget(coordinates) {
   return find(_dropTargets, (target) => {
+    if (!target.isMounted()) {
+      return false;
+    }
+
     var rect = getElementRect(target.getDOMNode());
 
     if (!rect) {
@@ -100,7 +110,9 @@ var Mouse = {
   },
 
   getDropTargetProps(component, types) {
-    if (!includes(_dropTargets, (target) => target._rootNodeID === component._rootNodeID)) {
+    removeUnmountedDropTargets();
+
+    if (component.isMounted() && !includes(_dropTargets, (target) => target._rootNodeID === component._rootNodeID)) {
       _dropTargets.push(component);
     }
 
