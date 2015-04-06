@@ -2,7 +2,6 @@
 
 var DragDropActionCreators = require("../actions/DragDropActionCreators"),
     DragOperationStore = require("../stores/DragOperationStore"),
-    DragOffsetStore = require("../stores/DragOffsetStore"),
     DragDropContext = require("../utils/DragDropContext"),
     EnterLeaveMonitor = require("./EnterLeaveMonitor"),
     DropEffects = require("../constants/DropEffects"),

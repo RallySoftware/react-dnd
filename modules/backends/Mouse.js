@@ -89,7 +89,10 @@ var Mouse = {
   beginDrag(component, e, containerNode, dragPreview, dragAnchors, dragStartOffset, effectsAllowed) {
     e.preventDefault();
     e.stopPropagation();
+
     _currentComponent = component;
+    removeUnmountedDropTargets();
+    
     window.addEventListener('mousemove', handleTopMouseMove);
     window.addEventListener('mouseup', handleTopMouseUp);
   },
@@ -110,9 +113,7 @@ var Mouse = {
   },
 
   getDropTargetProps(component, types) {
-    removeUnmountedDropTargets();
-
-    if (component.isMounted() && !includes(_dropTargets, (target) => target._rootNodeID === component._rootNodeID)) {
+    if (!includes(_dropTargets, (target) => target._rootNodeID === component._rootNodeID)) {
       _dropTargets.push(component);
     }
 
