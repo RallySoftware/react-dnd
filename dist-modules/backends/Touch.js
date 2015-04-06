@@ -2,8 +2,10 @@
 
 var DragDropActionCreators = require("../actions/DragDropActionCreators"),
     DragOperationStore = require("../stores/DragOperationStore"),
+    Mouse = require("./Mouse"),
     find = require("lodash/collection/find"),
     includes = require("lodash/collection/includes"),
+    merge = require("lodash/object/merge"),
     getElementRect = require("../utils/getElementRect");
 
 var _currentComponent,
@@ -70,9 +72,22 @@ function handleTouchEnd(e) {
 }
 
 function getClientOffset(e) {
+  console.log("clientx:", e.clientX);
+  console.log("clienty:", e.clientY);
+  console.log("pagex:", e.pageX);
+  console.log("pageY:", e.pageY);
+  console.log("screenx:", e.screenX);
+  console.log("screeny:", e.screenY);
+
+  var ratio = document.documentElement.clientWidth / window.innerWidth;
+
+  if (window.devicePixelRatio) {
+    ratio = window.devicePixelRatio;
+  }
+
   return {
-    x: e.clientX,
-    y: e.clientY
+    x: e.clientX * ratio,
+    y: e.clientY * ratio
   };
 }
 
@@ -82,6 +97,7 @@ var Touch = {
   teardown: function teardown() {},
 
   beginDrag: function beginDrag(component, e, containerNode, dragPreview, dragAnchors, dragStartOffset, effectsAllowed) {
+    // Mouse.beginDrag(component, e, containerNode, dragPreview, dragAnchors, dragStartOffset, effectsAllowed);
     _currentComponent = component;
     _currentDragTarget = component.getDOMNode();
 
@@ -90,6 +106,7 @@ var Touch = {
   },
 
   endDrag: function endDrag() {
+    // Mouse.endDrag();
     _currentDragTarget.removeEventListener("touchmove", handleTouchMove);
     _currentDragTarget.removeEventListener("touchend", handleTouchEnd);
 
@@ -114,24 +131,38 @@ var Touch = {
   dragOver: function dragOver(e, dropEffect) {},
 
   getDragSourceProps: function getDragSourceProps(component, type) {
+    // We need to support mouse drag and drop in the case the use has mouse support as well. Defaulting to the Mouse backend.
+    // var mouseDragProps = Mouse.getDragSourceProps(component, type);
     // TODO: optimize bind when we figure this out
+
+    // return merge(mouseDragProps, {
+    //   onTouchStart: component.handleDragStart.bind(component, type)
+    // });
+
     return {
       onTouchStart: component.handleDragStart.bind(component, type)
     };
   },
 
   getDropTargetProps: function getDropTargetProps(component, types) {
+    // var mouseDropProps = Mouse.getDropTargetProps(component, types);
+
     if (!includes(_dropTargets, function (target) {
       return target._rootNodeID === component._rootNodeID;
     })) {
       _dropTargets.push(component);
     }
 
+    // return merge(mouseDropProps, {});
     return {};
   },
 
   getOffsetFromClient: function getOffsetFromClient(component, e) {
     e.preventDefault();
+
+    // if (!e.targetTouches) {
+    // return Mouse.getOffsetFromClient(component, e);
+    // }
     return getClientOffset(e.targetTouches[0]);
   }
 };
