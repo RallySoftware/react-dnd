@@ -97,6 +97,7 @@ var Mouse = {
 
   endDrag: function endDrag() {
     _currentComponent = null;
+    _currentDropTarget = null;
     window.removeEventListener("mousemove", handleTopMouseMove);
     window.removeEventListener("mouseup", handleTopMouseUp);
   },
