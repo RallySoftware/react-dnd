@@ -92,13 +92,14 @@ var Mouse = {
 
     _currentComponent = component;
     removeUnmountedDropTargets();
-    
+
     window.addEventListener('mousemove', handleTopMouseMove);
     window.addEventListener('mouseup', handleTopMouseUp);
   },
 
   endDrag() {
     _currentComponent = null;
+    _currentDropTarget = null;
     window.removeEventListener('mousemove', handleTopMouseMove);
     window.removeEventListener('mouseup', handleTopMouseUp);
   },
