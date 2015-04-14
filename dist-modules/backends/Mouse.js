@@ -63,6 +63,14 @@ function handleTopMouseMove(e) {
   _currentDropTarget = activeTarget;
 }
 
+function handleDragStart(component, type, e) {
+  if (e.button && e.button != 0) {
+    return;
+  }
+
+  component.handleDragStart(type, e);
+}
+
 function handleTopMouseUp(e) {
   if (_currentDropTarget) {
     _currentDropTarget.handleDrop(getDragItemTypes(), e);
@@ -106,7 +114,9 @@ var Mouse = {
 
   getDragSourceProps: function getDragSourceProps(component, type) {
     return {
-      onMouseDown: component.handleDragStart.bind(component, type)
+      onMouseDown: function (evt) {
+        handleDragStart(component, type, evt);
+      }
     };
   },
 
