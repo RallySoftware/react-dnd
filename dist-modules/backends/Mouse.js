@@ -1,6 +1,7 @@
 "use strict";
 
-var DragDropActionCreators = require("../actions/DragDropActionCreators"),
+var ReactDOM = require("react-dom"),
+    DragDropActionCreators = require("../actions/DragDropActionCreators"),
     DragOperationStore = require("../stores/DragOperationStore"),
     find = require("lodash/collection/find"),
     filter = require("lodash/collection/filter"),
@@ -26,7 +27,7 @@ function findDropTarget(coordinates) {
       return false;
     }
 
-    var rect = getElementRect(target.getDOMNode());
+    var rect = getElementRect(ReactDOM.findDOMNode(target));
 
     if (!rect) {
       return false;

@@ -8,7 +8,7 @@ var DragDropActionCreators = require('../actions/DragDropActionCreators'),
     isUrlDragDropEvent = require('../utils/isUrlDragDropEvent'),
     isNativeDraggedItemType = require('../utils/isNativeDraggedItemType'),
     configureDataTransfer = require('../utils/configureDataTransfer'),
-    shallowEqual = require('react/lib/shallowEqual'),
+    shallowEqual = require('fbjs/lib/shallowEqual'),
     isWebkit = require('../utils/isWebkit'),
     getElementRect = require('../utils/getElementRect');
 

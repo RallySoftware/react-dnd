@@ -1,7 +1,7 @@
 'use strict';
 
 import React from 'react';
-import LinkedStateMixin from 'react/lib/LinkedStateMixin';
+import LinkedStateMixin from 'react-addons-linked-state-mixin';
 import Colors from './Colors';
 import { DragDropMixin } from 'react-dnd';
 
@@ -62,10 +62,10 @@ export default function makeSource(sourceColor) {
                opacity
              }}>
 
-          <input type='checkbox'
-                 checkedLink={this.linkState('forbidDrag')}>
+          <label>
+            <input type='checkbox' checkedLink={ this.linkState('forbidDrag') } />
             Forbid drag
-          </input>
+          </label>
 
           {children}
         </div>

@@ -1,7 +1,7 @@
 "use strict";
 
 var EventEmitter = require("events").EventEmitter,
-    assign = require("react/lib/Object.assign"),
+    assign = require("object-assign"),
     CHANGE_EVENT = "change";
 
 function createStore(spec) {
