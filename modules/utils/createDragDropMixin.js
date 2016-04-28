@@ -1,6 +1,7 @@
 'use strict';
 
-var DragDropActionCreators = require('../actions/DragDropActionCreators'),
+var ReactDOM = require("react-dom"),
+    DragDropActionCreators = require('../actions/DragDropActionCreators'),
     DragOperationStore = require('../stores/DragOperationStore'),
     DragDropContext = require('../utils/DragDropContext'),
     EnterLeaveMonitor = require('./EnterLeaveMonitor'),
@@ -9,8 +10,8 @@ var DragDropActionCreators = require('../actions/DragDropActionCreators'),
     DefaultDropTarget = require('./DefaultDropTarget'),
     extractNativeItem = require('../utils/extractNativeItem'),
     isNativeDraggedItemType = require('../utils/isNativeDraggedItemType'),
-    invariant = require('react/lib/invariant'),
-    assign = require('react/lib/Object.assign'),
+    invariant = require('fbjs/lib/invariant'),
+    assign = require('object-assign'),
     defaults = require('lodash/object/defaults'),
     isArray = require('lodash/lang/isArray'),
     isObject = require('lodash/lang/isObject');
@@ -203,7 +204,7 @@ function createDragDropMixin(backend) {
       }
 
       var { item, dragPreview, dragAnchors, effectsAllowed } = beginDrag(this),
-          containerNode = this.getDOMNode(),
+          containerNode = ReactDOM.findDOMNode(this),
           containerRect = containerNode.getBoundingClientRect(),
           offsetFromClient = backend.getOffsetFromClient(this, e),
           offsetFromContainer;

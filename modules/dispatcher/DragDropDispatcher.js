@@ -1,7 +1,7 @@
 'use strict';
 
 var Dispatcher = require('flux').Dispatcher,
-    assign = require('react/lib/Object.assign');
+    assign = require('object-assign');
 
 var DragDropDispatcher = assign(new Dispatcher(), {
   handleAction(action) {

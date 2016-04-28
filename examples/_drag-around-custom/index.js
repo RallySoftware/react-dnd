@@ -1,7 +1,7 @@
 'use strict';
 
 import React from 'react';
-import LinkedStateMixin from 'react/lib/LinkedStateMixin';
+import LinkedStateMixin from 'react-addons-linked-state-mixin';
 import Container from './Container';
 import DragLayer from './DragLayer';
 
@@ -23,15 +23,15 @@ const DragAroundCustom = React.createClass({
         <Container snapToGrid={snapToGridAfterDrop} />
         <DragLayer snapToGrid={snapToGridWhileDragging} />
         <p>
-          <input type='checkbox'
-                 checkedLink={this.linkState('snapToGridAfterDrop')}>
+          <label>
+            <input type='checkbox' checkedLink={ this.linkState('snapToGridAfterDrop') } />
             Snap to grid after drop
-          </input>
+          </label>
           <br />
-          <input type='checkbox'
-                 checkedLink={this.linkState('snapToGridWhileDragging')}>
+          <label>
+            <input type='checkbox' checkedLink={ this.linkState('snapToGridWhileDragging') } />
             Snap to grid while dragging
-          </input>
+          </label>
         </p>
         <hr />
         <p>

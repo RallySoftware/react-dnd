@@ -1,7 +1,7 @@
 'use strict';
 
 import React from 'react';
-import LinkedStateMixin from 'react/lib/LinkedStateMixin';
+import LinkedStateMixin from 'react-addons-linked-state-mixin';
 import Container from './Container';
 import { Link } from 'react-router';
 
@@ -21,10 +21,10 @@ const DragAroundNaive = React.createClass({
       <div>
         <Container hideSourceOnDrag={hideSourceOnDrag} />
         <p>
-          <input type='checkbox'
-                 checkedLink={this.linkState('hideSourceOnDrag')}>
+          <label>
+            <input type='checkbox' checkedLink={ this.linkState('hideSourceOnDrag') }/>
             Hide source item while dragging
-          </input>
+          </label>
         </p>
         <hr />
         <p>
