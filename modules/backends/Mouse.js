@@ -3,65 +3,103 @@
 var ReactDOM = require("react-dom"),
     DragDropActionCreators = require('../actions/DragDropActionCreators'),
     DragOperationStore = require('../stores/DragOperationStore'),
-    find = require('lodash/collection/find'),
-    filter = require('lodash/collection/filter'),
-    includes = require('lodash/collection/includes'),
     getElementRect = require('../utils/getElementRect');
 
+var findDOMNode = ReactDOM.findDOMNode;
 var _currentComponent;
-var _dropTargets = [];
-var _currentDropTarget;
+var _dropTargetComponents;
+var _currentDropTargetComponent;
 
-function removeUnmountedDropTargets() {
-  _dropTargets = filter(_dropTargets, (target) => {
-    return target.isMounted();
-  });
+function reset() {
+  _dropTargetComponents = [];
+  _currentDropTargetComponent = null;
 }
+reset();
+
 function getDragItemTypes() {
   return [DragOperationStore.getDraggedItemType()];
 }
 
-function findDropTarget(coordinates) {
-  return find(_dropTargets, (target) => {
-    if (!target.isMounted()) {
-      return false;
+function getComponentNodeDepth(component) {
+  var depth = 0;
+  var el = findDOMNode(component);
+  while(el) {
+    depth += 1;
+    el = el.parentNode;
+  }
+
+  return depth;
+}
+
+function findDropTarget(mouseTargetEl, coordinates) {
+  var targetMatcher;
+  var isIE = window.navigator.appVersion.indexOf('MSIE') > -1;
+  if (isIE) {
+    // in IE < 11 mouseTargetEl will be the drag ghost element,
+    // so we have to use less-performant coordinate math.
+    targetMatcher = function(dropTargetComponent) {
+      var dropTargetEl = findDOMNode(dropTargetComponent);
+      var rect = getElementRect(dropTargetEl);
+       if (!rect) {
+         return false;
+       }
+
+       return coordinates.x >= rect.left &&
+              coordinates.x <= rect.left + rect.width &&
+              coordinates.y >= rect.top &&
+              coordinates.y <= rect.top + rect.height;
+    };
+  } else {
+    // in other browsers mouseTargetEl will be the
+    // element that's being dragged over, so we can use an optimized matcher.
+    targetMatcher = function(dropTargetComponent) {
+      var dropTargetEl = findDOMNode(dropTargetComponent);
+      return dropTargetEl === mouseTargetEl || dropTargetEl.contains(mouseTargetEl);
+    }
+  }
+
+  var matchingDropTargets = _dropTargetComponents.filter(targetMatcher);
+
+  // nested drop target support:
+  // if there are multiple matching drop targets
+  // return the inner-most target
+  return matchingDropTargets.reduce(function(innerMostDropTarget, dropTargetComponent) {
+    if (innerMostDropTarget) {
+      var dropTargetDepth = getComponentNodeDepth(dropTargetComponent);
+      var innerMostDropTargetDepth = getComponentNodeDepth(innerMostDropTarget);
+      return dropTargetDepth > innerMostDropTargetDepth ?
+        dropTargetComponent : innerMostDropTarget;
     }
 
-    var rect = getElementRect(ReactDOM.findDOMNode(target));
-
-    if (!rect) {
-      return false;
-    }
-
-    return coordinates.x >= rect.left && coordinates.x <= rect.left + rect.width && coordinates.y >= rect.top && coordinates.y <= rect.top + rect.height;
-  });
+    return dropTargetComponent;
+  }, null);
 }
 
 function handleTopMouseMove(e) {
   var coordinates = getClientOffset(e);
   DragDropActionCreators.drag(coordinates);
 
-  var activeTarget = findDropTarget(coordinates);
+  var activeTarget = findDropTarget(e.target, coordinates);
 
-  if (!_currentDropTarget && !activeTarget) {
+  if (!_currentDropTargetComponent && !activeTarget) {
     return;
   }
 
   var dragItemTypes = getDragItemTypes();
-  if (activeTarget === _currentDropTarget) {
-    _currentDropTarget.handleDragOver(dragItemTypes, e)
+  if (activeTarget === _currentDropTargetComponent) {
+    _currentDropTargetComponent.handleDragOver(dragItemTypes, e)
     return;
   }
 
-  if (_currentDropTarget) {
-    _currentDropTarget.handleDragLeave(dragItemTypes, e);
+  if (_currentDropTargetComponent) {
+    _currentDropTargetComponent.handleDragLeave(dragItemTypes, e);
   }
 
   if (activeTarget) {
     activeTarget.handleDragEnter(dragItemTypes, e);
   }
 
-  _currentDropTarget = activeTarget;
+  _currentDropTargetComponent = activeTarget;
 }
 
 function handleDragStart(component, type, e) {
@@ -73,8 +111,8 @@ function handleDragStart(component, type, e) {
 }
 
 function handleTopMouseUp(e) {
-  if (_currentDropTarget) {
-    _currentDropTarget.handleDrop(getDragItemTypes(), e);
+  if (_currentDropTargetComponent) {
+    _currentDropTargetComponent.handleDrop(getDragItemTypes(), e);
   }
 
   var type = DragOperationStore.getDraggedItemType();
@@ -89,10 +127,16 @@ function getClientOffset(e) {
 }
 
 var Mouse = {
-  setup() {
-  },
+  setup() {},
 
   teardown() {
+    reset();
+  },
+
+  unmountDragDropComponent(component) {
+    _dropTargetComponents = _dropTargetComponents.filter(function(dropTargetComponent) {
+      return dropTargetComponent !== component;
+    });
   },
 
   beginDrag(component, e, containerNode, dragPreview, dragAnchors, dragStartOffset, effectsAllowed) {
@@ -100,21 +144,18 @@ var Mouse = {
     e.stopPropagation();
 
     _currentComponent = component;
-    removeUnmountedDropTargets();
-
     window.addEventListener('mousemove', handleTopMouseMove);
     window.addEventListener('mouseup', handleTopMouseUp);
   },
 
   endDrag() {
     _currentComponent = null;
-    _currentDropTarget = null;
+    _currentDropTargetComponent = null;
     window.removeEventListener('mousemove', handleTopMouseMove);
     window.removeEventListener('mouseup', handleTopMouseUp);
   },
 
-  dragOver(e, dropEffect) {
-  },
+  dragOver(e, dropEffect) {},
 
   getDragSourceProps(component, type) {
     return {
@@ -125,8 +166,14 @@ var Mouse = {
   },
 
   getDropTargetProps(component, types) {
-    if (!includes(_dropTargets, (target) => target._rootNodeID === component._rootNodeID)) {
-      _dropTargets.push(component);
+    if (_dropTargetComponents.indexOf(component) < 0) {
+      // side effect city!
+      //
+      // when this function is called
+      // we know the component is a drop target
+      // and we need to keep track of it so we
+      // can test to see if the mouse is over it.
+      _dropTargetComponents.push(component);
     }
 
     return {};
