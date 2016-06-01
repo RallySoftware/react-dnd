@@ -152,6 +152,9 @@ function createDragDropMixin(backend) {
     },
 
     componentWillUnmount() {
+      if (backend.unmountDragDropComponent) {
+        backend.unmountDragDropComponent(this);
+      }
       unuseBackend(this);
       DragOperationStore.removeChangeListener(this.handleStoreChangeInDragDropMixin);
     },
