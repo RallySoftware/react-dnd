@@ -1,6 +1,8 @@
 'use strict';
 
-var ReactDOM = require("react-dom"),
+var difference = require('lodash/array/difference'),
+    intersection = require('lodash/array/intersection'),
+    ReactDOM = require("react-dom"),
     DragDropActionCreators = require('../actions/DragDropActionCreators'),
     DragOperationStore = require('../stores/DragOperationStore'),
     getElementRect = require('../utils/getElementRect');
@@ -8,11 +10,11 @@ var ReactDOM = require("react-dom"),
 var findDOMNode = ReactDOM.findDOMNode;
 var _currentComponent;
 var _dropTargetComponents;
-var _currentDropTargetComponent;
+var _currentDropTargetComponents;
 
 function reset() {
   _dropTargetComponents = [];
-  _currentDropTargetComponent = null;
+  _currentDropTargetComponents = [];
 }
 reset();
 
@@ -31,7 +33,11 @@ function getComponentNodeDepth(component) {
   return depth;
 }
 
-function findDropTarget(mouseTargetEl, coordinates) {
+function sortComponentNodeDepth(a, b) {
+  return getComponentNodeDepth(a) > getComponentNodeDepth(b) ? -1 : 1;
+}
+
+function findDropTargets(mouseTargetEl, coordinates) {
   var targetMatcher;
   var isIE = window.navigator.appVersion.indexOf('MSIE') > -1;
   if (isIE) {
@@ -58,48 +64,33 @@ function findDropTarget(mouseTargetEl, coordinates) {
     }
   }
 
-  var matchingDropTargets = _dropTargetComponents.filter(targetMatcher);
+  const matchingDropTargets = _dropTargetComponents.filter(targetMatcher);
 
   // nested drop target support:
-  // if there are multiple matching drop targets
-  // return the inner-most target
-  return matchingDropTargets.reduce(function(innerMostDropTarget, dropTargetComponent) {
-    if (innerMostDropTarget) {
-      var dropTargetDepth = getComponentNodeDepth(dropTargetComponent);
-      var innerMostDropTargetDepth = getComponentNodeDepth(innerMostDropTarget);
-      return dropTargetDepth > innerMostDropTargetDepth ?
-        dropTargetComponent : innerMostDropTarget;
-    }
-
-    return dropTargetComponent;
-  }, null);
+  // sort the drop targets from inner-most to outer-most
+  return matchingDropTargets.sort(sortComponentNodeDepth);
 }
 
 function handleTopMouseMove(e) {
   var coordinates = getClientOffset(e);
   DragDropActionCreators.drag(coordinates);
 
-  var activeTarget = findDropTarget(e.target, coordinates);
+  var activeTargets = findDropTargets(e.target, coordinates);
 
-  if (!_currentDropTargetComponent && !activeTarget) {
+  if (!_currentDropTargetComponents.length && !activeTargets.length) {
     return;
   }
 
   var dragItemTypes = getDragItemTypes();
-  if (activeTarget === _currentDropTargetComponent) {
-    _currentDropTargetComponent.handleDragOver(dragItemTypes, e)
-    return;
-  }
+  var newTargetComponents = difference(activeTargets, _currentDropTargetComponents);
+  var lostTargetComponents = difference(_currentDropTargetComponents, activeTargets);
+  var remainingTargetComponents = intersection(activeTargets, _currentDropTargetComponents);
 
-  if (_currentDropTargetComponent) {
-    _currentDropTargetComponent.handleDragLeave(dragItemTypes, e);
-  }
+  remainingTargetComponents.forEach(rtc => rtc.handleDragOver(dragItemTypes, e));
+  lostTargetComponents.forEach(ltc => ltc.handleDragLeave(dragItemTypes, e));
+  newTargetComponents.forEach(ntc => ntc.handleDragEnter(dragItemTypes, e));
 
-  if (activeTarget) {
-    activeTarget.handleDragEnter(dragItemTypes, e);
-  }
-
-  _currentDropTargetComponent = activeTarget;
+  _currentDropTargetComponents = activeTargets;
 }
 
 function handleDragStart(component, type, e) {
@@ -111,9 +102,7 @@ function handleDragStart(component, type, e) {
 }
 
 function handleTopMouseUp(e) {
-  if (_currentDropTargetComponent) {
-    _currentDropTargetComponent.handleDrop(getDragItemTypes(), e);
-  }
+  _currentDropTargetComponents.some(cdtc => cdtc.handleDrop(getDragItemTypes(), e));
 
   var type = DragOperationStore.getDraggedItemType();
   _currentComponent.handleDragEnd(type, null);
@@ -150,7 +139,7 @@ var Mouse = {
 
   endDrag() {
     _currentComponent = null;
-    _currentDropTargetComponent = null;
+    _currentDropTargetComponents = [];
     window.removeEventListener('mousemove', handleTopMouseMove);
     window.removeEventListener('mouseup', handleTopMouseUp);
   },
