@@ -18,7 +18,7 @@ var EnterLeaveMonitor = (function () {
     enter: {
       value: function enter(enteringNode) {
         this._entered = union(this._entered.filter(function (node) {
-          return document.body.contains(node) && (!node.contains || node.contains(enteringNode));
+          return typeof node === Node && document.body.contains(node) && (!node.contains || node.contains(enteringNode));
         }), [enteringNode]);
 
         return this._entered.length === 1;

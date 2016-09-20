@@ -10,7 +10,7 @@ class EnterLeaveMonitor {
 
   enter(enteringNode) {
     this._entered = union(
-      this._entered.filter(node =>
+      this._entered.filter(node => typeof node === Node &&
         document.body.contains(node) &&
         (!node.contains || node.contains(enteringNode))
       ),

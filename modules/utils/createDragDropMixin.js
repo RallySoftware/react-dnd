@@ -347,7 +347,7 @@ function createDragDropMixin(backend) {
 
     handleDrop(types, e) {
       if (!this.isAnyDropTargetActive(types)) {
-        return;
+        return false;
       }
 
       e.preventDefault();
@@ -375,6 +375,7 @@ function createDragDropMixin(backend) {
       });
 
       acceptDrop(this, item, isHandled, DragOperationStore.getDropEffect());
+      return true;
     }
   };
 }

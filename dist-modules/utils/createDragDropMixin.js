@@ -328,7 +328,7 @@ function createDragDropMixin(backend) {
 
     handleDrop: function handleDrop(types, e) {
       if (!this.isAnyDropTargetActive(types)) {
-        return;
+        return false;
       }
 
       e.preventDefault();
@@ -356,6 +356,7 @@ function createDragDropMixin(backend) {
       });
 
       acceptDrop(this, item, isHandled, DragOperationStore.getDropEffect());
+      return true;
     }
   };
 }
